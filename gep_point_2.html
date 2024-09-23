@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de la Laguna de Fúquene</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px; /* Altura del mapa */
+            width: 100%; /* Ancho del mapa */
+        }
+    </style>
+</head>
+<body>
+    <h1>Laguna de Fúquene</h1>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Inicializar el mapa centrado en la Laguna de Fúquene
+        const map = L.map('map').setView([5.45, -73.55], 12); // Coordenadas y nivel de zoom
+
+        // Capa de tiles de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Polígono de la laguna (ajusta según tus datos)
+        const lagunaPolygon = L.polygon([
+            [5.44, -73.56],
+            [5.46, -73.56],
+            [5.46, -73.54],
+            [5.44, -73.54]
+        ]).addTo(map).bindPopup(`Porcentaje de crecimiento: ${porcentajeCrecimiento.toFixed(2)}%`);
+
+        // Ajustar el mapa para que muestre el polígono
+        map.fitBounds(lagunaPolygon.getBounds());
+
+        function calcularCrecimiento(areaMaxima, areaMinima) {
+            return ((areaMaxima - areaMinima) / areaMinima) * 100;
+        }
+
+        // Ejemplo de áreas (en km²)
+        const areaMaxima = 30; // área máxima
+        const areaMinima = 15; // área mínima
+
+        const porcentajeCrecimiento = calcularCrecimiento(areaMaxima, areaMinima);
+        console.log(`Porcentaje de crecimiento del área: ${porcentajeCrecimiento.toFixed(2)}%`);
+
+    </script>
+</body>
+</html>

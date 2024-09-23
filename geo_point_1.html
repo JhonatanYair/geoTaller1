@@ -1,0 +1,32 @@
+<script>
+
+    function haversine(lat1, lon1, lat2, lon2) {
+        const r = 6371; // Radio de la Tierra en km
+        const toRadians = angle => angle * (Math.PI / 180);
+
+        const deltaPhi = toRadians(lat2 - lat1);
+        const deltaLambda = toRadians(lon2 - lon1);
+        const phi1 = toRadians(lat1);
+        const phi2 = toRadians(lat2);
+
+        const a = Math.sin(deltaPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
+        const c = 2 * Math.asin(Math.sqrt(a));
+
+        return r * c; // Distancia en km
+    }
+
+    // Coordenadas de los casos
+    const cases = [
+        { lat1: 4.6369566546922485, lon1: -74.08344303563474, lat2: 4.698387290122269, lon2: -74.08913229761984 },
+        { lat1: 2.4930822620498403, lon1: -76.56469927139997, lat2: 4.553288632232513, lon2: -75.65871130171998 },
+        { lat1: 7.141088134111742, lon1: -73.11869057856512, lat2: 42.35927858183055, lon2: -71.09328053009632 }
+    ];
+
+    // Cálculo de distancias
+    cases.forEach((c, index) => {
+        const distance = haversine(c.lat1, c.lon1, c.lat2, c.lon2);
+        console.log(`Distancia caso ${index + 1}: ${distance.toFixed(2)} km`);
+    });
+
+
+</script>
