@@ -1,32 +1,79 @@
-<script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapas con OpenStreetMap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
 
-    function haversine(lat1, lon1, lat2, lon2) {
-        const r = 6371; // Radio de la Tierra en km
-        const toRadians = angle => angle * (Math.PI / 180);
+    <div id="map"></div>
 
-        const deltaPhi = toRadians(lat2 - lat1);
-        const deltaLambda = toRadians(lon2 - lon1);
-        const phi1 = toRadians(lat1);
-        const phi2 = toRadians(lat2);
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Función para calcular la distancia haversine
+        function haversine(lat1, lon1, lat2, lon2) {
+            const r = 6371; // Radio de la Tierra en km
+            const toRadians = angle => angle * (Math.PI / 180);
 
-        const a = Math.sin(deltaPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
-        const c = 2 * Math.asin(Math.sqrt(a));
+            const deltaPhi = toRadians(lat2 - lat1);
+            const deltaLambda = toRadians(lon2 - lon1);
+            const phi1 = toRadians(lat1);
+            const phi2 = toRadians(lat2);
 
-        return r * c; // Distancia en km
-    }
+            const a = Math.sin(deltaPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
+            const c = 2 * Math.asin(Math.sqrt(a));
 
-    // Coordenadas de los casos
-    const cases = [
-        { lat1: 4.6369566546922485, lon1: -74.08344303563474, lat2: 4.698387290122269, lon2: -74.08913229761984 },
-        { lat1: 2.4930822620498403, lon1: -76.56469927139997, lat2: 4.553288632232513, lon2: -75.65871130171998 },
-        { lat1: 7.141088134111742, lon1: -73.11869057856512, lat2: 42.35927858183055, lon2: -71.09328053009632 }
-    ];
+            return r * c; // Distancia en km
+        }
 
-    // Cálculo de distancias
-    cases.forEach((c, index) => {
-        const distance = haversine(c.lat1, c.lon1, c.lat2, c.lon2);
-        console.log(`Distancia caso ${index + 1}: ${distance.toFixed(2)} km`);
-    });
+        // Coordenadas de los casos
+        const cases = [
+            { lat1: 4.6369566546922485, lon1: -74.08344303563474, lat2: 4.698387290122269, lon2: -74.08913229761984 },
+            { lat1: 2.4930822620498403, lon1: -76.56469927139997, lat2: 4.553288632232513, lon2: -75.65871130171998 },
+            { lat1: 7.141088134111742, lon1: -73.11869057856512, lat2: 42.35927858183055, lon2: -71.09328053009632 }
+        ];
 
+        // Inicializa el mapa centrado en una coordenada
+        const map = L.map('map').setView([4.6369566546922485, -74.08344303563474], 5);
 
-</script>
+        // Capa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        // Función para añadir marcadores y líneas
+        function addCaseToMap(lat1, lon1, lat2, lon2, distance, caseIndex) {
+            // Añadir los marcadores
+            const marker1 = L.marker([lat1, lon1]).addTo(map).bindPopup(`Caso ${caseIndex + 1} - Punto 1`);
+            const marker2 = L.marker([lat2, lon2]).addTo(map).bindPopup(`Caso ${caseIndex + 1} - Punto 2`);
+
+            // Añadir la línea entre los dos puntos
+            const line = L.polyline([[lat1, lon1], [lat2, lon2]], { color: 'blue' }).addTo(map);
+
+            // Mostrar la distancia en el centro de la línea
+            const midLat = (lat1 + lat2) / 2;
+            const midLon = (lon1 + lon2) / 2;
+            const distancePopup = L.popup()
+                .setLatLng([midLat, midLon])
+                .setContent(`Distancia: ${distance.toFixed(2)} km`)
+                .openOn(map);
+        }
+
+        // Itera sobre los casos, calcula la distancia y los añade al mapa
+        cases.forEach((c, index) => {
+            const distance = haversine(c.lat1, c.lon1, c.lat2, c.lon2);
+            addCaseToMap(c.lat1, c.lon1, c.lat2, c.lon2, distance, index);
+            console.log(`Distancia caso ${index + 1}: ${distance.toFixed(2)} km`);
+        });
+    </script>
+
+</body>
+</html>

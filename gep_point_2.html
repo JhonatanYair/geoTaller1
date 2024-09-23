@@ -3,50 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de la Laguna de Fúquene</title>
+    <title>Mapa de la Laguna de Fúquene - Expansión</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 600px; /* Altura del mapa */
-            width: 100%; /* Ancho del mapa */
+            height: 600px;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Laguna de Fúquene</h1>
+    <h1>Laguna de Fúquene - Área de Expansión</h1>
     <div id="map"></div>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        // Inicializar el mapa centrado en la Laguna de Fúquene
-        const map = L.map('map').setView([5.45, -73.55], 12); // Coordenadas y nivel de zoom
 
-        // Capa de tiles de OpenStreetMap
+    <!-- Turf.js para cálculos geoespaciales -->
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <script>
+
+        // Coordenadas del centro de la Laguna de Fúquene
+        const centerLatitude = 5.46667;
+        const centerLongitude = -73.75;
+        const areaKm2 = 20; // Área de la laguna en km²
+
+        // Convertir área de km² a m²
+        const areaM2 = areaKm2 * 1e6; // 1 km² = 1,000,000 m²
+
+        // Asumir que la forma es rectangular (L = 2W)
+        const width = Math.sqrt(areaM2 / 2); // Ancho
+        const length = 2 * width; // Largo
+
+        // Cálculo de desplazamientos en grados
+        const latitudinalDisplacement = width / 111320; // Aproximadamente 111.32 km por grado de latitud
+        const longitudinalDisplacement = length / (111320 * Math.cos(centerLatitude * Math.PI / 180)); // Aproximadamente
+
+        // Generar coordenadas del polígono
+        const areaCoords = [
+            [centerLatitude + latitudinalDisplacement, centerLongitude - longitudinalDisplacement], // Noroeste
+            [centerLatitude + latitudinalDisplacement, centerLongitude + longitudinalDisplacement], // Noreste
+            [centerLatitude - latitudinalDisplacement, centerLongitude + longitudinalDisplacement], // Sureste
+            [centerLatitude - latitudinalDisplacement, centerLongitude - longitudinalDisplacement]  // Suroeste
+        ];
+
+        // Mostrar las coordenadas calculadas
+        console.log("Coordenadas del polígono que representa la Laguna de Fúquene:");
+        console.log(areaCoords);
+
+        // Aquí puedes agregar el código para dibujar el polígono en el mapa
+        // Ejemplo utilizando Leaflet
+        const map = L.map('map').setView([centerLatitude, centerLongitude], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
         }).addTo(map);
 
-        // Polígono de la laguna (ajusta según tus datos)
-        const lagunaPolygon = L.polygon([
-            [5.44, -73.56],
-            [5.46, -73.56],
-            [5.46, -73.54],
-            [5.44, -73.54]
-        ]).addTo(map).bindPopup(`Porcentaje de crecimiento: ${porcentajeCrecimiento.toFixed(2)}%`);
+        // Dibujar el polígono en el mapa
+        const polygon = L.polygon(areaCoords, { color: 'blue' }).addTo(map);
+        polygon.bindPopup("Área de Laguna de Fúquene");
 
-        // Ajustar el mapa para que muestre el polígono
-        map.fitBounds(lagunaPolygon.getBounds());
+        // Inicializar el mapa centrado en la Laguna de Fúquene
+        // const map = L.map('map').setView([5.46667, -73.75], 12);
 
-        function calcularCrecimiento(areaMaxima, areaMinima) {
-            return ((areaMaxima - areaMinima) / areaMinima) * 100;
-        }
+        // // Capa de tiles de OpenStreetMap
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: 19,
+        // }).addTo(map);
 
-        // Ejemplo de áreas (en km²)
-        const areaMaxima = 30; // área máxima
-        const areaMinima = 15; // área mínima
+        // // // Definición del polígono del área mínima (contracción)
+        // // const areaMinimaCoords = [
+        // //     [5.45, -73.76],
+        // //     [5.46, -73.75],
+        // //     [5.45, -73.74],
+        // //     [5.44, -73.75]
+        // // ];
+        
+        // const areaMinimaPolygon = L.polygon(areaMinimaCoords, {
+        //     color: 'green',
+        //     fillColor: '#33ff33',
+        //     fillOpacity: 0.5
+        // }).addTo(map).bindPopup('Área mínima (contracción)');
 
-        const porcentajeCrecimiento = calcularCrecimiento(areaMaxima, areaMinima);
-        console.log(`Porcentaje de crecimiento del área: ${porcentajeCrecimiento.toFixed(2)}%`);
+        // Definición del polígono del área máxima (expansión)
+        // const areaMaximaCoords = [
+        //     [5.465999, -73.771973],
+        //     [5.438559, -73.748994],
+        //     [5.439927, -73.717556],
+        //     [5.469999, -73.717899]
+        // ];
+        
+        // const areaMaximaPolygon = L.polygon(areaMaximaCoords, {
+        //     color: 'blue',
+        //     fillColor: '#3388ff',
+        //     fillOpacity: 0.5
+        // }).addTo(map).bindPopup('Área máxima (expansión)');
 
+        // // Ajustar el mapa para que se vea todo el área
+        // map.fitBounds(areaMaximaPolygon.getBounds());
+
+        // // Convertir a GeoJSON para usar con Turf.js
+        // const areaMinimaGeoJSON = turf.polygon([areaMinimaCoords]);
+        // const areaMaximaGeoJSON = turf.polygon([areaMaximaCoords]);
+
+        // // Calcular el área de los polígonos (en metros cuadrados)
+        // const areaMinima = turf.area(areaMinimaGeoJSON);
+        // const areaMaxima = turf.area(areaMaximaGeoJSON);
+
+        // // Calcular el porcentaje de expansión
+        // const porcentajeCrecimiento = ((areaMaxima - areaMinima) / areaMinima) * 100;
+
+        // // Mostrar los resultados en consola
+        // console.log('Área mínima (m²):', areaMinima.toFixed(2));
+        // console.log('Área máxima (m²):', areaMaxima.toFixed(2));
+        // console.log('Porcentaje de crecimiento del área:', porcentajeCrecimiento.toFixed(2), '%');
+
+        // // Añadir un pop-up con el resultado en el área de expansión
+        // areaMaximaPolygon.bindPopup(`Porcentaje de crecimiento del área: ${porcentajeCrecimiento.toFixed(2)}%`);
     </script>
 </body>
 </html>
